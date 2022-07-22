@@ -1,0 +1,115 @@
+﻿@page
+@using Grud.Cars.Application.Data.Entities
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal">New Car</button>
+<table class="table table-bordered table-hover table-condensed">
+    <thead>
+        <tr>
+
+            <th>Make</th>
+            <th>Model</th>
+            <th>Year</th>
+            <th>Doors</th>
+            <th>Color</th>
+            <th>Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Car car in ViewData["Cars"] as List<Car>)
+        {
+            <tr id="@car.Id">
+                
+                <td>@car.Make </td>
+                <td>@car.Model </td>
+                <td>@car.Year</td>
+                <td>@car.Doors</td>
+                <td>@car.Color</td>
+                <td>@car.Price</td>
+                <td><button class="btn btn-primary edit-car" onclick="fetchModel(this)"  data-bs-toggle="modal" data-bs-target="#modal" car="@car.Id">Edit</button></td>
+                <td><button class="btn btn-primary" onclick="remove(this)"  car="@car.Id" >Remove</button></td>
+                <td ><button class="btn btn-primary"  onclick="check(this)"  car="@car.Id">Check</button> <h5 style="color:green" id="message.@car.Id"></h5>  </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<partial name="Shared/_ModalCar" model="new Car()" />
+
+@section scripts{
+    <script>
+
+
+        const save = document.getElementById('save-car');
+      
+        save.addEventListener('click', () => {
+            saveCar();
+            window.location.reload();
+
+        });
+        function check(obj) {
+            var elements = document.getElementById(obj.getAttribute("car")).getElementsByTagName('td');
+            if (parseInt(elements[5].innerText) < 5000) {
+                obj.style.display = 'none';
+                document.getElementById("message."+obj.getAttribute("car")).innerText= "Great job!";
+            }
+        }
+        function remove(obj) {
+            var elements = document.getElementById(obj.getAttribute("car")).getElementsByTagName('td');
+            const model = {
+                id:obj.getAttribute("car"),
+                model: elements[1].innerText,
+                make:  elements[0].innerText,
+                year:  elements[2].innerText,
+                doors: elements[3].innerText,
+                color: elements[4].innerText,
+                price: elements[5].innerText
+            };
+            fetch('/api/remove', {
+                method:  'post',
+                headers: {
+                    "Content-type": "application/json",
+                },
+                body: JSON.stringify(model)
+            });
+            document.getElementById(obj.getAttribute("car")).remove();
+            window.location.reload();
+        }
+        function fetchModel(obj) {
+       
+ 
+            var elements = document.getElementById(obj.getAttribute("car")).getElementsByTagName('td');
+            document.getElementById('Id').value = obj.getAttribute("car");
+            document.getElementById('Model').value = elements[1].innerText;
+            document.getElementById('Make').value =  elements[0].innerText;
+            document.getElementById('Year').value =  elements[2].innerText;
+            document.getElementById('Doors').value = elements[3].innerText;
+            document.getElementById('Color').value = elements[4].innerText;
+            document.getElementById('Price').value = elements[5].innerText;
+      
+
+        }
+
+        const saveCar = () => {
+            const model = {
+                id: document.getElementById('Id').value,
+                model: document.getElementById('Model').value,
+                make: document.getElementById('Make').value,
+                year: document.getElementById('Year').value,
+                doors: document.getElementById('Doors').value,
+                color: document.getElementById('Color').value,
+                price: document.getElementById('Price').value,
+            };
+            fetch('/api/save', {
+                method:  'post',
+                headers: {
+                    "Content-type": "application/json",
+                },
+                body: JSON.stringify(model)
+            });
+        }
+    </script>
+}
